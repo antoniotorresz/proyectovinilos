@@ -61,3 +61,39 @@ application-prod.properties
 # Logs
 *.log
 logs/
+
+# React / Node.js frontend (ui folder)
+ui/node_modules/
+ui/build/
+ui/dist/
+ui/.pnp
+ui/.pnp.js
+
+# Testing
+ui/coverage/
+
+# Production
+ui/build/
+
+# Misc
+ui/.DS_Store
+ui/.env
+ui/.env.local
+ui/.env.development.local
+ui/.env.test.local
+ui/.env.production.local
+
+# Logs
+ui/npm-debug.log*
+ui/yarn-debug.log*
+ui/yarn-error.log*
+ui/pnpm-debug.log*
+
+# Editor
+ui/.vscode/
+ui/.idea/
+
+# Optional - dependencies lock (uncomment if you want to ignore)
+# ui/package-lock.json
+# ui/yarn.lock
+# ui/pnpm-lock.yaml
