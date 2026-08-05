@@ -1,0 +1,123 @@
+### Create Publication - Songs from the Big Chair
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "name": "Songs from the Big Chair - Tears for Fears",
+  "description": "Second studio album featuring the iconic hit Everybody Wants to Rule the World. Released in 1985, this album defined the sound of 80s synth-pop and new wave.",
+  "albumName": "Songs from the Big Chair",
+  "artist": "Tears for Fears",
+  "genre": "Synth-pop",
+  "releaseYear": 1985,
+  "condition": "VERY_GOOD",
+  "price": 34.99,
+  "imageUris": [
+    "https://upload.wikimedia.org/wikipedia/en/a/a1/Everybody_Wants_to_Rule_the_World.png?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=thumbnail_unscaled&_=20231219215016"
+  ]
+}
+
+### Create Publication - Rubber Soul
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "name": "Rubber Soul - The Beatles",
+  "description": "Sixth studio album by The Beatles, marking their artistic evolution. Features classics like Norwegian Wood, In My Life, and Michelle. Original 1965 pressing.",
+  "albumName": "Rubber Soul",
+  "artist": "The Beatles",
+  "genre": "Rock",
+  "releaseYear": 1965,
+  "condition": "EXCELLENT",
+  "price": 79.99,
+  "imageUris": [
+    "https://www.thebeatles.com/sites/default/files/styles/max_2600x2600/public/2021-06/Rubber%20Soul.jpg?itok=P8DYZM6d"
+  ]
+}
+
+### Create Publication - Caifanes (Volumen 1)
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "name": "Caifanes - Caifanes",
+  "description": "Debut album of the iconic Mexican rock band Caifanes. Released in 1988, featuring hits like Mátenme Porque Me Muero and La Negra Tomasa. A cornerstone of Latin American rock.",
+  "albumName": "Caifanes",
+  "artist": "Caifanes",
+  "genre": "Rock en Español",
+  "releaseYear": 1988,
+  "condition": "VERY_GOOD",
+  "price": 42.99,
+  "imageUris": [
+    "https://www.caifanes.com.mx/assets/extra-images/disco001.jpg",
+    "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQV_o46wZulJ4IfKDX7K391e4fJmG1d318E6NWf0jKXDy9o3OASMaALQ1vY&s=10"
+  ]
+}
+
+### Create Publication - Rumours by Fleetwood Mac
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "name": "Rumours - Fleetwood Mac",
+  "description": "One of the best-selling albums of all time. A masterpiece of 70s soft rock featuring classics like Dreams, Go Your Own Way, and The Chain.",
+  "albumName": "Rumours",
+  "artist": "Fleetwood Mac",
+  "genre": "Soft Rock",
+  "releaseYear": 1977,
+  "condition": "NEAR_MINT",
+  "price": 45.00,
+  "imageUris": [
+    "https://upload.wikimedia.org/wikipedia/en/f/fb/FMacRumours.PNG"
+  ]
+}
+
+### Create Publication - Thriller by Michael Jackson
+POST http://localhost:8080/api/publications
+Content-Type: application/json
+
+{
+  "name": "Thriller - Michael Jackson",
+  "description": "The best-selling album of all time featuring legendary hits like Billie Jean, Beat It, and Thriller. A pop masterpiece produced by Quincy Jones.",
+  "albumName": "Thriller",
+  "artist": "Michael Jackson",
+  "genre": "Pop",
+  "releaseYear": 1982,
+  "condition": "MINT",
+  "price": 55.00,
+  "imageUris": [
+    "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png"
+  ]
+}
+
+### Get All Publications
+GET http://localhost:8080/api/publications
+
+### Get Publication by ID
+GET http://localhost:8080/api/publications/1
+
+### Search by Artist - Beatles
+GET http://localhost:8080/api/publications/search/artist?name=Beatles
+
+### Search by Genre - Rock
+GET http://localhost:8080/api/publications/search/genre?name=Rock
+
+### Update Publication
+PUT http://localhost:8080/api/publications/1
+Content-Type: application/json
+
+{
+  "name": "Rubber Soul - The Beatles",
+  "description": "Sixth studio album by The Beatles, marking their artistic evolution. Features classics like Norwegian Wood, In My Life, and Michelle. Original 1965 pressing.",
+  "albumName": "Rubber Soul",
+  "artist": "The Beatles",
+  "genre": "Rock",
+  "releaseYear": 1965,
+  "condition": "EXCELLENT",
+  "price": 79.99,
+  "imageUris": [
+    "https://www.thebeatles.com/sites/default/files/styles/max_2600x2600/public/2021-06/Rubber%20Soul.jpg?itok=P8DYZM6d"
+  ]
+}
+
+### Delete Publication
+DELETE http://localhost:8080/api/publications/1
