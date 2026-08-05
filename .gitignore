@@ -1,0 +1,63 @@
+# Spring Boot
+HELP.md
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE - IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# IDE - Eclipse/STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# IDE - NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# IDE - VS Code
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build directories
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Environment variables & sensitive data
+.env
+*.env
+application.properties
+application-local.properties
+application-prod.properties
+
+# Logs
+*.log
+logs/
