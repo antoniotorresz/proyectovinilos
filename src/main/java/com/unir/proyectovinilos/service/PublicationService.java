@@ -42,6 +42,8 @@ public class PublicationService {
                 existing.setCondition(updatedPublication.getCondition());
                 existing.setPrice(updatedPublication.getPrice());
                 existing.setImageUris(updatedPublication.getImageUris());
+                
+                existing.setUser(updatedPublication.getUser());
                 return publicationRepository.save(existing);
             })
             .orElseThrow(() -> new RuntimeException("Publication not found with id: " + id));
