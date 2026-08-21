@@ -62,20 +62,22 @@ class PublicationTest {
 
     @Test
     void testAllArgsConstructor() {
-        Publication fullPublication = new Publication(
-                1,
-                "Full Publication",
-                "Full description",
-                LocalDate.of(2023, 1, 1),
-                new String[]{"image1.jpg", "image2.jpg"},
-                "Full Album",
-                "Full Artist",
-                "Pop",
-                2022,
-                "Used",
-                new BigDecimal("29.99"),
-                null
-        );
+        Publication fullPublication = new Publication();
+        fullPublication.setId(1);
+        fullPublication.setName("Full Publication");
+        fullPublication.setDescription("Full description");
+        fullPublication.setCreatedAt(LocalDate.of(2023, 1, 1));
+        fullPublication.setImageUris(new String[]{"image1.jpg", "image2.jpg"});
+        fullPublication.setAlbumName("Full Album");
+        fullPublication.setArtist("Full Artist");
+        fullPublication.setGenre("Pop");
+        fullPublication.setReleaseYear(2022);
+        fullPublication.setCondition("Used");
+        fullPublication.setFormat("Vinilo");
+        fullPublication.setPrice(new BigDecimal("29.99"));
+        fullPublication.setUser(null);
+        fullPublication.setComments(null);
+        
 
         assertEquals(1, fullPublication.getId());
         assertEquals("Full Publication", fullPublication.getName());
