@@ -5,9 +5,10 @@ import com.unir.proyectovinilos.repository.PublicationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
+import com.unir.proyectovinilos.entity.User;
+import com.unir.proyectovinilos.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +16,8 @@ import java.util.Optional;
 public class PublicationService {
     
     private final PublicationRepository publicationRepository;
+
+    private final UserRepository userRepository;
     
     public List<Publication> getAllPublications() {
         return publicationRepository.findAll();
@@ -26,8 +29,17 @@ public class PublicationService {
     
     @Transactional
     public Publication createPublication(Publication publication) {
+        if (publication.getUser() != null && publication.getUser().getId() != null) {
+            User user = userRepository.findById(publication.getUser().getId())
+                .orElseThrow(() -> new RuntimeException(
+                    "User not found with id: " + publication.getUser().getId()
+                ));
+
+            publication.setUser(user);
+        }
+
         return publicationRepository.save(publication);
-    }
+    }   
     
     @Transactional
     public Publication updatePublication(Integer id, Publication updatedPublication) {
@@ -42,8 +54,15 @@ public class PublicationService {
                 existing.setCondition(updatedPublication.getCondition());
                 existing.setPrice(updatedPublication.getPrice());
                 existing.setImageUris(updatedPublication.getImageUris());
-                
-                existing.setUser(updatedPublication.getUser());
+                existing.setFormat(updatedPublication.getFormat()); 
+                if (updatedPublication.getUser() != null && updatedPublication.getUser().getId() != null) {
+                    User user = userRepository.findById(updatedPublication.getUser().getId())
+                        .orElseThrow(() -> new RuntimeException(
+                            "User not found with id: " + updatedPublication.getUser().getId()
+                        ));
+
+                    existing.setUser(user);
+                }
                 return publicationRepository.save(existing);
             })
             .orElseThrow(() -> new RuntimeException("Publication not found with id: " + id));
@@ -60,6 +79,10 @@ public class PublicationService {
     
     public List<Publication> findByGenre(String genre) {
         return publicationRepository.findByGenreIgnoreCase(genre);
+    }
+
+    public List<Publication> findByUser(Long userId) {
+        return publicationRepository.findByUserId(userId);
     }
     
 }

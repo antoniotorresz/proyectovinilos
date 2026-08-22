@@ -9,5 +9,12 @@ export interface Publication {
   genre?: string;
   releaseYear?: number;
   condition?: string;
+  format?: string;
   price: number;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+    createdAt: string;
+  } | null;
 }
