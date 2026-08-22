@@ -15,4 +15,5 @@ public interface PublicationRepository extends JpaRepository<Publication, Intege
     
     List<Publication> findByReleaseYear(Integer year);
     List<Publication> findByGenreIgnoreCase(String genre);
+    List<Publication> findByUserId(Long userId);
 }

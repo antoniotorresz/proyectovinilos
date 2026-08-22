@@ -69,5 +69,11 @@ public class PublicationController {
     public ResponseEntity<List<Publication>> searchByGenre(@RequestParam String name) {
         return ResponseEntity.ok(publicationService.findByGenre(name));
     }
+
+    // GET /api/publications/user/1 - Search by user
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Publication>> getPublicationsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(publicationService.findByUser(userId));
+    }
     
 }

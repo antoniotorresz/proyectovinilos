@@ -1,70 +1,161 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Music Market - Frontend
 
-## Available Scripts
+Frontend del proyecto **Music Market**, desarrollado con React, TypeScript y Vite.
 
-In the project directory, you can run:
+La aplicación permite explorar publicaciones de productos musicales como vinilos, CDs y cassettes, además de gestionar las publicaciones asociadas a un usuario.
 
-### `npm start`
+## Tecnologías
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Lucide React
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Requisitos previos
 
-### `npm test`
+Antes de ejecutar el frontend es necesario tener instalado:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Node.js
+- npm
 
-### `npm run build`
+Para comprobar la instalación:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+node --version
+npm --version
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Instalación
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Después de clonar el repositorio, abrir una terminal en la carpeta del frontend:
 
-### `npm run eject`
+```bash
+cd ui
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Instalar las dependencias:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Ejecutar el frontend
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Desde la carpeta `ui` ejecutar:
 
-## Learn More
+```bash
+npm run dev
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Vite iniciará el servidor de desarrollo.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Por defecto la aplicación estará disponible en:
 
-### Code Splitting
+```text
+http://localhost:5173
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Backend
 
-### Analyzing the Bundle Size
+El frontend consume la API REST del proyecto Spring Boot.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+El backend debe estar ejecutándose en:
 
-### Making a Progressive Web App
+```text
+http://localhost:8080
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Desde la raíz del proyecto se puede iniciar con:
 
-### Advanced Configuration
+```bash
+mvn spring-boot:run
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Antes de iniciar el backend se debe configurar correctamente la conexión a la base de datos.
 
-### Deployment
+## Ejecución completa del proyecto
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Se recomienda utilizar dos terminales.
 
-### `npm run build` fails to minify
+### Terminal 1 - Backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Desde la raíz del proyecto:
+
+```bash
+mvn spring-boot:run
+```
+
+### Terminal 2 - Frontend
+
+Desde la carpeta `ui`:
+
+```bash
+npm install
+npm run dev
+```
+
+Después abrir:
+
+```text
+http://localhost:5173
+```
+
+## Estructura principal del frontend
+
+```text
+ui/
+├── src/
+│   ├── app/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   ├── publications/
+│   │   │   └── ui/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── App.tsx
+│   ├── imports/
+│   ├── styles/
+│   └── main.tsx
+├── package.json
+└── vite.config.ts
+```
+
+## Páginas
+
+Actualmente el frontend dispone de las siguientes rutas:
+
+| Ruta | Descripción |
+|---|---|
+| `/` | Página de inicio |
+| `/explore` | Exploración de publicaciones |
+| `/publish` | Crear una publicación |
+| `/my-publications` | Publicaciones del usuario |
+| `/profile` | Perfil del usuario |
+| `/publications/:id/edit` | Editar una publicación |
+
+## Integración con la API
+
+Los servicios encargados de comunicarse con Spring Boot se encuentran en:
+
+```text
+src/app/services/
+```
+
+La interfaz de datos de las publicaciones se encuentra en:
+
+```text
+src/app/types/Publication.ts
+```
+
+El frontend actualmente permite consultar publicaciones, consultar publicaciones de un usuario, crear publicaciones, editar publicaciones y eliminar publicaciones.
+
+## Notas de desarrollo
+
+Actualmente se utiliza el usuario con ID `1` como usuario de prueba para las operaciones relacionadas con publicaciones.
+
+Esta asociación es temporal mientras se implementa el sistema definitivo de autenticación y sesión de usuario.
