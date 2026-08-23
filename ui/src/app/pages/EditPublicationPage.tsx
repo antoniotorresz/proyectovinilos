@@ -6,12 +6,16 @@ import {
   getPublicationById,
   updatePublication,
 } from "../services/publicationService";
+import PublicationForm from "../components/publications/PublicationForm";
+import type { PublicationFormData } from "../components/publications/PublicationForm";
 
 export default function EditPublicationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [publication, setPublication] = useState<Publication | null>(null);
+  const [form, setForm] = useState<PublicationFormData | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -27,7 +31,21 @@ export default function EditPublicationPage() {
 
       try {
         const data = await getPublicationById(Number(id));
+
         setPublication(data);
+
+        setForm({
+          name: data.name || "",
+          albumName: data.albumName || "",
+          artist: data.artist || "",
+          genre: data.genre || "",
+          releaseYear: data.releaseYear?.toString() || "",
+          condition: data.condition || "",
+          format: data.format || "",
+          price: data.price?.toString() || "",
+          description: data.description || "",
+          imageUrl: data.imageUris?.[0] || "",
+        });
       } catch (err) {
         console.error(err);
         setError("No se pudo cargar la publicación.");
@@ -42,43 +60,66 @@ export default function EditPublicationPage() {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    if (!publication) return;
-
     const { name, value } = e.target;
 
-    setPublication({
-      ...publication,
-      [name]:
-        name === "price"
-          ? Number(value)
-          : name === "releaseYear"
-          ? Number(value)
-          : value,
-    });
-  };
-
-  const handleImageChange = (value: string) => {
-    if (!publication) return;
-
-    setPublication({
-      ...publication,
-      imageUris: value ? [value] : [],
-    });
+    setForm((prev) =>
+      prev
+        ? {
+            ...prev,
+            [name]: value,
+          }
+        : prev
+    );
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!publication) return;
+    if (!publication || !form) {
+      return;
+    }
 
     try {
       setSaving(true);
       setError("");
       setSuccess("");
 
-      const updated = await updatePublication(publication.id, publication);
+      const updatedPublication: Publication = {
+        ...publication,
+        name: form.name,
+        albumName: form.albumName,
+        artist: form.artist,
+        genre: form.genre,
+        releaseYear: form.releaseYear
+          ? Number(form.releaseYear)
+          : undefined,
+        condition: form.condition,
+        format: form.format,
+        price: Number(form.price),
+        description: form.description,
+        imageUris: form.imageUrl ? [form.imageUrl] : [],
+      };
+
+      const updated = await updatePublication(
+        publication.id,
+        updatedPublication
+      );
 
       setPublication(updated);
+
+      setForm({
+        name: updated.name || "",
+        albumName: updated.albumName || "",
+        artist: updated.artist || "",
+        genre: updated.genre || "",
+        releaseYear: updated.releaseYear?.toString() || "",
+        condition: updated.condition || "",
+        format: updated.format || "",
+        price: updated.price?.toString() || "",
+        description: updated.description || "",
+        imageUrl: updated.imageUris?.[0] || "",
+      });
+
       setSuccess("Publicación actualizada correctamente.");
     } catch (err) {
       console.error(err);
@@ -91,227 +132,50 @@ export default function EditPublicationPage() {
   if (loading) {
     return (
       <div className="flex-1 max-w-[900px] mx-auto w-full px-5 py-10">
-        <p style={{ color: "#8892a4" }}>Cargando publicación...</p>
+        <p style={{ color: "#8892a4" }}>
+          Cargando publicación...
+        </p>
       </div>
     );
   }
 
-  if (error && !publication) {
+  if (error && !form) {
     return (
       <div className="flex-1 max-w-[900px] mx-auto w-full px-5 py-10">
-        <p style={{ color: "#ef4444" }}>{error}</p>
+        <p style={{ color: "#ef4444" }}>
+          {error}
+        </p>
       </div>
     );
   }
 
-  if (!publication) return null;
-
-  const inputStyle = {
-    background: "#1e2433",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#e8eaf0",
-  };
+  if (!form) {
+    return null;
+  }
 
   return (
     <div className="flex-1 max-w-[900px] mx-auto w-full px-5 py-10">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Editar publicación</h1>
+        <h1 className="text-2xl font-bold mb-2">
+          Editar publicación
+        </h1>
 
         <p style={{ color: "#8892a4" }}>
           Modifica la información de tu publicación.
         </p>
       </div>
 
-      <form
+      <PublicationForm
+        form={form}
+        onChange={handleChange}
         onSubmit={handleSubmit}
-        className="rounded-lg p-6"
-        style={{
-          background: "#161b27",
-          border: "1px solid rgba(255,255,255,0.07)",
-        }}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-          <div>
-            <label className="block text-[13px] mb-2">Título</label>
-            <input
-              name="name"
-              value={publication.name || ""}
-              onChange={handleChange}
-              required
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Álbum</label>
-            <input
-              name="albumName"
-              value={publication.albumName || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Artista</label>
-            <input
-              name="artist"
-              value={publication.artist || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Género</label>
-            <input
-              name="genre"
-              value={publication.genre || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">
-              Año de lanzamiento
-            </label>
-
-            <input
-              type="number"
-              name="releaseYear"
-              value={publication.releaseYear || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Precio</label>
-
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              name="price"
-              value={publication.price}
-              onChange={handleChange}
-              required
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Formato</label>
-
-            <select
-              name="format"
-              value={publication.format || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            >
-              <option value="">Seleccionar formato</option>
-              <option value="Vinilo">Vinilo</option>
-              <option value="CD">CD</option>
-              <option value="Cassette">Cassette</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[13px] mb-2">Estado</label>
-
-            <select
-              name="condition"
-              value={publication.condition || ""}
-              onChange={handleChange}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            >
-              <option value="">Seleccionar estado</option>
-              <option value="MINT">Mint</option>
-              <option value="NEAR_MINT">Near Mint</option>
-              <option value="EXCELLENT">Excellent</option>
-              <option value="VERY_GOOD">Very Good</option>
-              <option value="GOOD">Good</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-[13px] mb-2">
-              URL de imagen
-            </label>
-
-            <input
-              value={publication.imageUris?.[0] || ""}
-              onChange={(e) => handleImageChange(e.target.value)}
-              className="w-full rounded px-3 py-2 outline-none"
-              style={inputStyle}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-[13px] mb-2">
-              Descripción
-            </label>
-
-            <textarea
-              name="description"
-              value={publication.description || ""}
-              onChange={handleChange}
-              rows={5}
-              className="w-full rounded px-3 py-2 outline-none resize-y"
-              style={inputStyle}
-            />
-          </div>
-        </div>
-
-        {error && (
-          <p className="mt-5 text-[13px]" style={{ color: "#ef4444" }}>
-            {error}
-          </p>
-        )}
-
-        {success && (
-          <p className="mt-5 text-[13px]" style={{ color: "#22c55e" }}>
-            {success}
-          </p>
-        )}
-
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            type="button"
-            onClick={() => navigate("/my-publications")}
-            className="px-5 py-2 rounded text-[13px] font-semibold"
-            style={{
-              background: "#1e2433",
-              color: "#c4c8d8",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-5 py-2 rounded text-[13px] font-semibold disabled:opacity-50"
-            style={{
-              background: "#f59e0b",
-              color: "#0f1117",
-            }}
-          >
-            {saving ? "Guardando..." : "Guardar cambios"}
-          </button>
-        </div>
-      </form>
+        onCancel={() => navigate("/my-publications")}
+        saving={saving}
+        error={error}
+        success={success}
+        submitText="Guardar cambios"
+        savingText="Guardando..."
+      />
     </div>
   );
 }

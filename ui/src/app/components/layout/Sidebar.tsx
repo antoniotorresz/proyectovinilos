@@ -2,30 +2,36 @@ const FORMATOS = ["Vinilo", "CD", "Cassette"];
 
 interface SidebarProps {
   formatoChecked: string[];
-  estadoNuevo: boolean;
-  estadoUsado: boolean;
+  condition: string;
   precioMin: string;
   precioMax: string;
   onToggleFormato: (formato: string) => void;
-  onEstadoNuevoChange: () => void;
-  onEstadoUsadoChange: () => void;
+  onConditionChange: (condition: string) => void;
   onPrecioMinChange: (value: string) => void;
   onPrecioMaxChange: (value: string) => void;
   onApplyFilters: () => void;
+  error?: string;
 }
+
+const CONDITIONS = [
+  "MINT",
+  "NEAR_MINT",
+  "EXCELLENT",
+  "VERY_GOOD",
+  "GOOD",
+];
 
 export default function Sidebar({
   formatoChecked,
-  estadoNuevo,
-  estadoUsado,
+  condition,
   precioMin,
   precioMax,
   onToggleFormato,
-  onEstadoNuevoChange,
-  onEstadoUsadoChange,
+  onConditionChange,
   onPrecioMinChange,
   onPrecioMaxChange,
   onApplyFilters,
+  error,
 }: SidebarProps) {
   return (
     <aside className="w-[210px] shrink-0">
@@ -52,6 +58,24 @@ export default function Sidebar({
           </p>
 
           <div className="space-y-2">
+            <label
+              className="flex items-center gap-2 text-[13px] cursor-pointer"
+              style={{ color: "#8892a4" }}
+            >
+              <input
+                type="radio"
+                name="format"
+                checked={formatoChecked.length === 0}
+                onChange={() => {
+                  if (formatoChecked.length > 0) {
+                    onToggleFormato(formatoChecked[0]);
+                  }
+                }}
+                style={{ accentColor: "#f59e0b" }}
+              />
+              Todos
+            </label>
+
             {FORMATOS.map((f) => (
               <label
                 key={f}
@@ -59,10 +83,10 @@ export default function Sidebar({
                 style={{ color: "#8892a4" }}
               >
                 <input
-                  type="checkbox"
-                  checked={formatoChecked.includes(f)}
+                  type="radio"
+                  name="format"
+                  checked={formatoChecked[0] === f}
                   onChange={() => onToggleFormato(f)}
-                  className="rounded"
                   style={{ accentColor: "#f59e0b" }}
                 />
                 {f}
@@ -71,6 +95,7 @@ export default function Sidebar({
           </div>
         </div>
 
+        {/* Estado */}
         <div className="mb-5">
           <p
             className="text-[11px] font-semibold uppercase tracking-wider mb-2"
@@ -80,31 +105,39 @@ export default function Sidebar({
           </p>
 
           <div className="space-y-2">
-            <label
-              className="flex items-center gap-2 text-[13px] cursor-pointer"
-              style={{ color: "#8892a4" }}
-            >
-              <input
-                type="checkbox"
-                checked={estadoNuevo}
-                onChange={onEstadoNuevoChange}
-                style={{ accentColor: "#f59e0b" }}
-              />
-              Nuevo
-            </label>
 
             <label
               className="flex items-center gap-2 text-[13px] cursor-pointer"
               style={{ color: "#8892a4" }}
             >
               <input
-                type="checkbox"
-                checked={estadoUsado}
-                onChange={onEstadoUsadoChange}
+                type="radio"
+                name="condition"
+                checked={condition === ""}
+                onChange={() => onConditionChange("")}
                 style={{ accentColor: "#f59e0b" }}
               />
-              Usado
+              Todos
             </label>
+
+            {CONDITIONS.map((item) => (
+              <label
+                key={item}
+                className="flex items-center gap-2 text-[13px] cursor-pointer"
+                style={{ color: "#8892a4" }}
+              >
+                <input
+                  type="radio"
+                  name="condition"
+                  checked={condition === item}
+                  onChange={() => onConditionChange(item)}
+                  style={{ accentColor: "#f59e0b" }}
+                />
+
+                {item.replaceAll("_", " ")}
+              </label>
+            ))}
+
           </div>
         </div>
 
@@ -118,8 +151,10 @@ export default function Sidebar({
 
           <div className="flex gap-2 items-center">
             <input
-              type="text"
+              type="number"
               placeholder="Min"
+              min="0"
+              step="0.01"
               value={precioMin}
               onChange={(e) => onPrecioMinChange(e.target.value)}
               className="w-full text-[12px] px-2 py-1.5 outline-none"
@@ -136,7 +171,9 @@ export default function Sidebar({
             </span>
 
             <input
-              type="text"
+              type="number"
+              min="0"
+              step="0.01"
               placeholder="Max"
               value={precioMax}
               onChange={(e) => onPrecioMaxChange(e.target.value)}
@@ -150,6 +187,19 @@ export default function Sidebar({
             />
           </div>
         </div>
+
+        {error && (
+          <div
+            className="mb-3 text-[11px] leading-relaxed px-3 py-2 rounded"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              color: "#ef4444",
+              border: "1px solid rgba(239,68,68,0.2)",
+            }}
+          >
+            {error}
+          </div>
+        )}
 
         <button
           onClick={onApplyFilters}

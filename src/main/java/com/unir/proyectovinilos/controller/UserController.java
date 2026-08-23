@@ -52,4 +52,11 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/email")
+    public ResponseEntity<User> getUserByEmail(@RequestParam String email) {
+        return userService.getUserByEmail(email)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
