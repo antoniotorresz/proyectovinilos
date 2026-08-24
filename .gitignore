@@ -98,3 +98,7 @@ ui/.idea/
 # ui/yarn.lock
 # ui/pnpm-lock.yaml
 ui_backup/
+
+src/main/resources/application-local.properties
+
+src/main/resources/application.properties

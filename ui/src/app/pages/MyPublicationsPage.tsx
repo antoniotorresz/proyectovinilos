@@ -3,12 +3,23 @@ import type { Publication } from "../types/Publication";
 import { deletePublication, getPublicationsByUser } from "../services/publicationService";
 import PublicationCard from "../components/publications/PublicationCard";
 import { useNavigate } from "react-router";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 export default function MyPublicationsPage() {
   const navigate = useNavigate();
   const [publications, setPublications] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [publicationToDelete, setPublicationToDelete] = useState<Publication | null>(null);
 
   useEffect(() => {
     const loadPublications = async () => {
@@ -30,34 +41,48 @@ export default function MyPublicationsPage() {
     navigate(`/publications/${publication.id}/edit`);
 };
 
-  const handleDelete = async (publication: Publication) => {
-    const confirmed = window.confirm(
-        `¿Seguro que quieres eliminar "${publication.albumName || publication.name}"?`
+const handleDelete = async () => {
+  if (!publicationToDelete) {
+    return;
+  }
+
+  try {
+    await deletePublication(publicationToDelete.id);
+
+    setPublications((prev) =>
+      prev.filter((item) => item.id !== publicationToDelete.id)
     );
 
-    if (!confirmed) {
-        return;
-    }
-
-    try {
-        await deletePublication(publication.id);
-
-        setPublications((prev) =>
-        prev.filter((item) => item.id !== publication.id)
-        );
-    } catch (err) {
-        console.error(err);
-        alert("No se pudo eliminar la publicación.");
-    }
- };
+    setPublicationToDelete(null);
+  } catch (err) {
+    console.error(err);
+    setError("No se pudo eliminar la publicación.");
+  }
+};
 
   return (
     <div className="flex-1 max-w-[1200px] mx-auto w-full px-5 py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Mis publicaciones</h1>
-        <p style={{ color: "#8892a4" }}>
-          Administra los productos que tienes publicados en Music Market.
-        </p>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">
+            Mis publicaciones
+          </h1>
+
+          <p style={{ color: "#8892a4" }}>
+            Administra los productos que tienes publicados en Music Market.
+          </p>
+        </div>
+
+        <button
+          onClick={() => navigate("/publish")}
+          className="px-5 py-2.5 rounded text-[13px] font-semibold transition-opacity hover:opacity-90"
+          style={{
+            background: "#f59e0b",
+            color: "#0f1117",
+          }}
+        >
+          Nueva publicación
+        </button>
       </div>
 
       {loading && (
@@ -101,11 +126,66 @@ export default function MyPublicationsPage() {
               publication={publication}
               showActions
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={(publication) => setPublicationToDelete(publication)}
             />
           ))}
         </div>
       )}
+
+      <AlertDialog
+        open={publicationToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPublicationToDelete(null);
+          }
+        }}
+      >
+        <AlertDialogContent
+          style={{
+            background: "#161b27",
+            border: "1px solid rgba(255,255,255,0.1)",
+            color: "#e8eaf0",
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              ¿Eliminar publicación?
+            </AlertDialogTitle>
+
+            <AlertDialogDescription style={{ color: "#8892a4" }}>
+              Estás a punto de eliminar{" "}
+              <strong style={{ color: "#e8eaf0" }}>
+                {publicationToDelete?.albumName ||
+                  publicationToDelete?.name}
+              </strong>
+              . Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              style={{
+                background: "#1e2433",
+                color: "#c4c8d8",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              Cancelar
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleDelete}
+              style={{
+                background: "#991b1b",
+                color: "#ffffff",
+              }}
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     </div>
   );
 }

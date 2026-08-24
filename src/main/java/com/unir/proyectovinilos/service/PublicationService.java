@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import com.unir.proyectovinilos.entity.User;
 import com.unir.proyectovinilos.repository.UserRepository;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -84,5 +85,31 @@ public class PublicationService {
     public List<Publication> findByUser(Long userId) {
         return publicationRepository.findByUserId(userId);
     }
+
+    public List<Publication> search(String query) {
+        return publicationRepository
+            .findByNameContainingIgnoreCaseOrAlbumNameContainingIgnoreCaseOrArtistContainingIgnoreCase(
+                query,
+                query,
+                query
+            );
+    }
     
+    public List<Publication> filterPublications(
+            String q,
+            String genre,
+            String format,
+            String condition,
+            BigDecimal minPrice,
+            BigDecimal maxPrice) {
+
+        return publicationRepository.filterPublications(
+            q,
+            genre,
+            format,
+            condition,
+            minPrice,
+            maxPrice
+        );
+    }
 }

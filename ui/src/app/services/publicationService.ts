@@ -78,3 +78,69 @@ export async function createPublication(
 
   return response.json();
 }
+
+export async function searchPublications(query: string): Promise<Publication[]> {
+  const response = await fetch(
+    `${API_URL}/search?q=${encodeURIComponent(query)}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Error al buscar publicaciones: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getPublicationsByGenre(
+  genre: string
+): Promise<Publication[]> {
+  const response = await fetch(
+    `${API_URL}/search/genre?name=${encodeURIComponent(genre)}`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Error al buscar publicaciones por género: ${response.status}`
+    );
+  }
+
+  return response.json();
+}
+
+export interface PublicationFilters {
+  q?: string;
+  genre?: string;
+  format?: string;
+  condition?: string;
+  minPrice?: number;
+  maxPrice?: number;
+}
+
+export async function filterPublications(
+  filters: PublicationFilters
+): Promise<Publication[]> {
+  const params = new URLSearchParams();
+
+  if (filters.q) params.append("q", filters.q);
+  if (filters.genre) params.append("genre", filters.genre);
+  if (filters.format) params.append("format", filters.format);
+  if (filters.condition) params.append("condition", filters.condition);
+
+  if (filters.minPrice !== undefined) {
+    params.append("minPrice", filters.minPrice.toString());
+  }
+
+  if (filters.maxPrice !== undefined) {
+    params.append("maxPrice", filters.maxPrice.toString());
+  }
+
+  const response = await fetch(
+    `${API_URL}/filter?${params.toString()}`
+  );
+
+  if (!response.ok) {
+    throw new Error(`Error al filtrar publicaciones: ${response.status}`);
+  }
+
+  return response.json();
+}

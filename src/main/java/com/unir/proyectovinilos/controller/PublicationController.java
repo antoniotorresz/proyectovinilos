@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/publications")
 @RequiredArgsConstructor
@@ -75,5 +77,31 @@ public class PublicationController {
     public ResponseEntity<List<Publication>> getPublicationsByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(publicationService.findByUser(userId));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Publication>> search(@RequestParam String q) {
+        return ResponseEntity.ok(publicationService.search(q));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<Publication>> filterPublications(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String format,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
+
+        return ResponseEntity.ok(
+            publicationService.filterPublications(
+                q,
+                genre,
+                format,
+                condition,
+                minPrice,
+                maxPrice
+            )
+        );
+    }   
     
 }

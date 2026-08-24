@@ -1,4 +1,5 @@
 import type { Publication } from "../../types/Publication";
+import { useNavigate } from "react-router";
 
 interface PublicationCardProps {
   publication: Publication;
@@ -13,6 +14,8 @@ export default function PublicationCard({
   onEdit,
   onDelete,
 }: PublicationCardProps) {
+  const navigate = useNavigate();
+  
   return (
     <div
       className="rounded-lg overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-xl"
@@ -76,32 +79,47 @@ export default function PublicationCard({
         </div>
 
         {showActions ? (
-          <div className="flex gap-2">
+          <div className="space-y-2">
             <button
-              onClick={() => onEdit?.(publication)}
-              className="flex-1 text-[13px] font-medium py-2 rounded transition-opacity hover:opacity-80"
+              onClick={() => navigate(`/publications/${publication.id}`)}
+              className="w-full text-[13px] font-medium py-2 rounded transition-opacity hover:opacity-80"
               style={{
                 background: "#1e2433",
                 color: "#c4c8d8",
                 border: "1px solid rgba(255,255,255,0.12)",
               }}
             >
-              Editar
+              Ver detalles
             </button>
 
-            <button
-              onClick={() => onDelete?.(publication)}
-              className="flex-1 text-[13px] font-medium py-2 rounded transition-opacity hover:opacity-80"
-              style={{
-                background: "#7f1d1d",
-                color: "#ffffff",
-              }}
-            >
-              Eliminar
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEdit?.(publication)}
+                className="flex-1 text-[13px] font-medium py-2 rounded transition-opacity hover:opacity-80"
+                style={{
+                  background: "#1e2433",
+                  color: "#c4c8d8",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+              >
+                Editar
+              </button>
+
+              <button
+                onClick={() => onDelete?.(publication)}
+                className="flex-1 text-[13px] font-medium py-2 rounded transition-opacity hover:opacity-80"
+                style={{
+                  background: "#7f1d1d",
+                  color: "#ffffff",
+                }}
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         ) : (
           <button
+            onClick={() => navigate(`/publications/${publication.id}`)}
             className="w-full text-[13px] font-medium py-2 rounded transition-colors hover:opacity-80"
             style={{
               background: "#1e2433",
