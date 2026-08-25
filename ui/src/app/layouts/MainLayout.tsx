@@ -13,7 +13,11 @@ export default function MainLayout() {
       }}
     >
       <Header />
-      <Outlet />
+
+      <div className="flex-1 flex flex-col">
+        <Outlet />
+      </div>
+
       <Footer />
     </div>
   );
