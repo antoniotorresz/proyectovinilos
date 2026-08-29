@@ -13,6 +13,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 
@@ -47,6 +49,7 @@ class CommentServiceTest {
         user.setId(1L);
 
         Comment comment = new Comment();
+        comment.setContent("Comentario de prueba");
         comment.setPublication(publication);
         comment.setUser(user);
 
@@ -68,6 +71,7 @@ class CommentServiceTest {
         user.setId(1L);
 
         Comment comment = new Comment();
+        comment.setContent("Comentario de prueba");
         comment.setPublication(new Publication());
         comment.getPublication().setId(1);
         comment.setUser(user);
@@ -76,7 +80,7 @@ class CommentServiceTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> commentService.saveComment(comment));
 
-        assertEquals("Publication not found", exception.getMessage());
+        assertEquals("Publication not found.", exception.getMessage());
         verify(publicationRepository, times(1)).findById(1);
         verify(userRepository, never()).findById(anyLong());
         verify(commentRepository, never()).save(any(Comment.class));
@@ -88,6 +92,7 @@ class CommentServiceTest {
         publication.setId(1);
 
         Comment comment = new Comment();
+        comment.setContent("Comentario de prueba");
         comment.setPublication(publication);
         comment.setUser(new User());
         comment.getUser().setId(1L);
@@ -97,7 +102,7 @@ class CommentServiceTest {
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> commentService.saveComment(comment));
 
-        assertEquals("User not found", exception.getMessage());
+        assertEquals("User not found.", exception.getMessage());
         verify(publicationRepository, times(1)).findById(1);
         verify(userRepository, times(1)).findById(1L);
         verify(commentRepository, never()).save(any(Comment.class));
