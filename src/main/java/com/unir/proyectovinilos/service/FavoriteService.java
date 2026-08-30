@@ -4,7 +4,6 @@ import com.unir.proyectovinilos.dto.TopFavorite;
 import com.unir.proyectovinilos.entity.Favorite;
 import com.unir.proyectovinilos.entity.Publication;
 import com.unir.proyectovinilos.entity.User;
-import com.unir.proyectovinilos.dto.TopFavorite;
 import java.util.Optional;
 import com.unir.proyectovinilos.repository.FavoriteRepository;
 import com.unir.proyectovinilos.repository.PublicationRepository;
