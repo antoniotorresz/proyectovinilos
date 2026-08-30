@@ -7,10 +7,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class PublicationServiceTest {
@@ -33,12 +42,16 @@ class PublicationServiceTest {
         Publication publication2 = new Publication();
         publication2.setId(2);
 
-        when(publicationRepository.findAll()).thenReturn(Arrays.asList(publication1, publication2));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Publication> mockPage = new PageImpl<>(
+                Arrays.asList(publication1, publication2), pageable, 2);
 
-        List<Publication> publications = publicationService.getAllPublications();
+        when(publicationRepository.findAll(pageable)).thenReturn(mockPage);
 
-        assertEquals(2, publications.size());
-        verify(publicationRepository, times(1)).findAll();
+        Page<Publication> publications = publicationService.getAllPublications(pageable);
+
+        assertEquals(2, publications.getTotalElements());
+        verify(publicationRepository, times(1)).findAll(pageable);
     }
 
     @Test
@@ -103,14 +116,18 @@ class PublicationServiceTest {
         Publication publication = new Publication();
         publication.setArtist("Test Artist");
 
-        when(publicationRepository.findByArtistContainingIgnoreCase("Test Artist"))
-                .thenReturn(List.of(publication));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Publication> mockPage = new PageImpl<>(List.of(publication), pageable, 1);
 
-        List<Publication> result = publicationService.findByArtist("Test Artist");
+        when(publicationRepository.findByArtistContainingIgnoreCase(eq("Test Artist"), any(Pageable.class)))
+                .thenReturn(mockPage);
 
-        assertEquals(1, result.size());
-        assertEquals("Test Artist", result.get(0).getArtist());
-        verify(publicationRepository, times(1)).findByArtistContainingIgnoreCase("Test Artist");
+        Page<Publication> result = publicationService.findByArtist("Test Artist", pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Test Artist", result.getContent().get(0).getArtist());
+        verify(publicationRepository, times(1))
+                .findByArtistContainingIgnoreCase(eq("Test Artist"), any(Pageable.class));
     }
 
     @Test
@@ -118,12 +135,17 @@ class PublicationServiceTest {
         Publication publication = new Publication();
         publication.setGenre("Rock");
 
-        when(publicationRepository.findByGenreIgnoreCase("Rock")).thenReturn(List.of(publication));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Publication> mockPage = new PageImpl<>(List.of(publication), pageable, 1);
 
-        List<Publication> result = publicationService.findByGenre("Rock");
+        when(publicationRepository.findByGenreIgnoreCase(eq("Rock"), any(Pageable.class)))
+                .thenReturn(mockPage);
 
-        assertEquals(1, result.size());
-        assertEquals("Rock", result.get(0).getGenre());
-        verify(publicationRepository, times(1)).findByGenreIgnoreCase("Rock");
+        Page<Publication> result = publicationService.findByGenre("Rock", pageable);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Rock", result.getContent().get(0).getGenre());
+        verify(publicationRepository, times(1))
+                .findByGenreIgnoreCase(eq("Rock"), any(Pageable.class));
     }
 }
