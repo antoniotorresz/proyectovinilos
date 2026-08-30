@@ -17,10 +17,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+import org.springframework.test.context.ActiveProfiles;
 
-
-
-
+@ActiveProfiles("test")
 class CommentServiceTest {
 
     @Mock
