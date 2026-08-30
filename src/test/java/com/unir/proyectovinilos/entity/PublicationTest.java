@@ -7,6 +7,9 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.springframework.test.context.ActiveProfiles;
+
+@ActiveProfiles("test")
 class PublicationTest {
 
     private Publication publication;
