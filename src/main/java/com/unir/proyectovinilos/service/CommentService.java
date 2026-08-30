@@ -2,6 +2,8 @@ package com.unir.proyectovinilos.service;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,9 @@ public class CommentService {
     private final PublicationRepository publicationRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(CommentService.class);
+
 
     public List<Comment> getCommentsByPublication(Integer publicationId) {
         return commentRepository
@@ -79,7 +84,7 @@ public class CommentService {
                 "Comment not found with id: " + id
             );
         }
-
+        logger.info("Someone deleted a comment");
         commentRepository.deleteById(id);
     }
 }
