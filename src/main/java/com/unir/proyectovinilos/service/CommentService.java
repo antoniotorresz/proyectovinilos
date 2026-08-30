@@ -84,7 +84,7 @@ public class CommentService {
                 "Comment not found with id: " + id
             );
         }
-        logger.info("Someone deleted a comment");
+        logger.info("Someone deleted a comment: " + id);
         commentRepository.deleteById(id);
     }
 }
