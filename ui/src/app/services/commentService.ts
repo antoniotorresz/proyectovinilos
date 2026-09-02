@@ -1,4 +1,5 @@
 import type { User } from "./userService";
+import { buildApiUrl } from "./api";
 
 export interface Comment {
   id: number;
@@ -19,8 +20,7 @@ export interface CreateCommentRequest {
   };
 }
 
-const API_URL =
-  "http://localhost:8080/api/comments";
+const API_URL = buildApiUrl("/comments");
 
 export async function getCommentsByPublication(
   publicationId: number
