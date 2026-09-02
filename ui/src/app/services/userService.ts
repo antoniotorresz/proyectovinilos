@@ -1,3 +1,4 @@
+import { buildApiUrl } from "./api";
 export interface User {
   id: number;
   name: string;
@@ -22,8 +23,7 @@ export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
 }
-
-const API_URL = "http://localhost:8080/api/users";
+const API_URL = buildApiUrl("/users");
 
 export async function getAllUsers(): Promise<User[]> {
   const response = await fetch(API_URL);

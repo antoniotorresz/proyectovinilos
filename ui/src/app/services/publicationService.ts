@@ -1,6 +1,7 @@
 import type { Publication } from "../types/Publication";
+import { buildApiUrl } from "./api";
 
-const API_URL = "http://localhost:8080/api/publications";
+const API_URL = buildApiUrl("/publications");
 
 export async function getPublications(): Promise<Publication[]> {
   const response = await fetch(API_URL);
