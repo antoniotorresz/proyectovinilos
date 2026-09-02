@@ -10,9 +10,19 @@ import PublicationCard from "../components/publications/PublicationCard";
 import type { Publication } from "../types/Publication";
 
 import {
-  filterPublications,
+  filterPublicationsPage,
   getPublications,
+  getPublicationsPage,
 } from "../services/publicationService";
+
+import Pagination from "../components/pagination/Pagination";
+
+import { useAuth } from "../context/AuthContext";
+import { useFavorites } from "../context/FavoritesContext";
+
+import { getFavoritePublications } from "../services/favoriteService";
+
+import { useLocation, useSearchParams } from "react-router";
 
 export default function ExplorePage() {
   const [search, setSearch] =
@@ -45,6 +55,22 @@ export default function ExplorePage() {
     setPublicaciones,
   ] = useState<Publication[]>([]);
 
+  const location = useLocation();
+
+  const [searchParams, setSearchParams] =
+  useSearchParams();
+
+  const initialPage =
+    Number(searchParams.get("page")) || 0;
+
+  const [page, setPage] =
+    useState(initialPage);
+  const [favoritePage, setFavoritePage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+
+  const PAGE_SIZE = 12;
+
   const [generos, setGeneros] =
     useState<string[]>(["Todos"]);
 
@@ -57,59 +83,109 @@ export default function ExplorePage() {
   const [backendError, setBackendError] =
     useState("");
 
+  const { user } = useAuth();
+
+  const [onlyFavorites, setOnlyFavorites] =
+    useState(false);
+
+  const {
+    favoriteIds,
+  } = useFavorites();
+
+  const [
+    favoritePublications,
+    setFavoritePublications,
+  ] = useState<Publication[]>([]);
+
   useEffect(() => {
-    const cargarPublicaciones =
-      async () => {
-        try {
-          setLoading(true);
-          setBackendError("");
+    const cargarPublicaciones = async () => {
+      try {
+        setLoading(true);
+        setBackendError("");
 
-          const data =
-            await getPublications();
+        // Primera página paginada
+        const data =
+          await getPublicationsPage({
+            page: initialPage,
+            size: PAGE_SIZE,
+            sort: [
+              "createdAt,desc",
+              "id,desc",
+            ],
+          });
 
-          setPublicaciones(data);
+        setPublicaciones(data.content);
+        setPage(data.number);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
 
-          const generosUnicos =
-            Array.from(
-              new Set(
-                data
-                  .map(
-                    (
-                      publication
-                    ) =>
-                      publication.genre
-                  )
-                  .filter(
-                    (
-                      genre
-                    ): genre is string =>
-                      Boolean(
-                        genre
-                      )
-                  )
-              )
-            ).sort();
+        // Se obtienen todas temporalmente solo
+        // para construir la lista dinámica de géneros
+        const allPublications =
+          await getPublications();
 
-          setGeneros([
-            "Todos",
-            ...generosUnicos,
-          ]);
-        } catch (error) {
-          console.error(
-            "Error al cargar publicaciones:",
-            error
-          );
+        const generosUnicos =
+          Array.from(
+            new Set(
+              allPublications
+                .map(
+                  (publication) =>
+                    publication.genre
+                )
+                .filter(
+                  (
+                    genre
+                  ): genre is string =>
+                    Boolean(genre)
+                )
+            )
+          ).sort();
 
-          setBackendError(
-            "No se pudieron cargar las publicaciones."
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
+        setGeneros([
+          "Todos",
+          ...generosUnicos,
+        ]);
+      } catch (error) {
+        console.error(
+          "Error al cargar publicaciones:",
+          error
+        );
+
+        setBackendError(
+          "No se pudieron cargar las publicaciones."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
     cargarPublicaciones();
   }, []);
+
+  useEffect(() => {
+    const loadFavoritePublications = async () => {
+      if (!user) {
+        setFavoritePublications([]);
+        return;
+      }
+
+      try {
+        const data =
+          await getFavoritePublications(
+            user.id
+          );
+
+        setFavoritePublications(data);
+      } catch (error) {
+        console.error(
+          "Error al cargar publicaciones favoritas:",
+          error
+        );
+      }
+    };
+
+    loadFavoritePublications();
+  }, [user?.id, favoriteIds]);
 
   const toggleFormato = (
     format: string
@@ -124,6 +200,35 @@ export default function ExplorePage() {
     );
   };
 
+  const getBackendSort = (): string[] => {
+    switch (ordenar) {
+      case "Precio: menor a mayor":
+        return [
+          "price,asc",
+          "id,asc",
+        ];
+
+      case "Precio: mayor a menor":
+        return [
+          "price,desc",
+          "id,desc",
+        ];
+
+      case "Más antiguos":
+        return [
+          "createdAt,asc",
+          "id,asc",
+        ];
+
+      case "Más recientes":
+      default:
+        return [
+          "createdAt,desc",
+          "id,desc",
+        ];
+    }
+  };
+
   const applyFilters = async (
     genreOverride?: string,
     overrides?: {
@@ -132,7 +237,8 @@ export default function ExplorePage() {
       condition?: string;
       minPrice?: string;
       maxPrice?: string;
-    }
+    },
+    targetPage = 0
   ) => {
     try {
       setFilterError("");
@@ -191,33 +297,32 @@ export default function ExplorePage() {
         generoActivo;
 
       const data =
-        await filterPublications({
-          q:
-            nextSearch
-              .trim() ||
-            undefined,
+        await filterPublicationsPage({
+          q: nextSearch.trim() || undefined,
 
           genre:
-            selectedGenre ===
-            "Todos"
+            selectedGenre === "Todos"
               ? undefined
               : selectedGenre,
 
           format:
-            nextFormat ||
-            undefined,
+            nextFormat || undefined,
 
           condition:
-            nextCondition ||
-            undefined,
+            nextCondition || undefined,
 
           minPrice: min,
           maxPrice: max,
+
+          page: targetPage,
+          size: PAGE_SIZE,
+          sort: getBackendSort(),
         });
 
-      setPublicaciones(
-        data
-      );
+      setPublicaciones(data.content);
+      setPage(data.number);
+      setTotalPages(data.totalPages);
+      setTotalElements(data.totalElements);
     } catch (error) {
       console.error(
         "Error al aplicar filtros:",
@@ -236,6 +341,35 @@ export default function ExplorePage() {
     async () => {
       await applyFilters();
     };
+
+  const handlePageChange = async (
+    nextPage: number
+  ) => {
+    if (
+      nextPage < 0 ||
+      nextPage >= totalPages ||
+      nextPage === page
+    ) {
+      return;
+    }
+
+    // Actualizar inmediatamente la URL
+    setSearchParams({
+      page: nextPage.toString(),
+    });
+
+    // Cargar la página seleccionada
+    await applyFilters(
+      generoActivo,
+      undefined,
+      nextPage
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   const handleGenreChange =
     async (
@@ -265,13 +399,29 @@ export default function ExplorePage() {
 
       try {
         setLoading(true);
-
         const data =
-          await getPublications();
+          await getPublicationsPage({
+                page: 0,
+                size: PAGE_SIZE,
+                sort: [
+                  "createdAt,desc",
+                  "id,desc",
+                ],
+      });
 
-        setPublicaciones(
-          data
-        );
+        setPublicaciones(data.content);
+        setPage(data.number);
+        setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements);
+        setSearchParams((prev) => {
+          const next =
+            new URLSearchParams(prev);
+
+          next.set("page", "0");
+
+          return next;
+        });
+
       } catch (error) {
         console.error(
           "Error al limpiar filtros:",
@@ -378,66 +528,176 @@ export default function ExplorePage() {
       );
     };
 
-  const sortedPublications =
-    useMemo(() => {
-      const sorted = [
-        ...publicaciones,
-      ];
+  const sortedPublications = useMemo(() => {
+    let basePublications =
+      onlyFavorites
+        ? [...favoritePublications]
+        : [...publicaciones];
 
-      if (
-        ordenar ===
-        "Precio: menor a mayor"
-      ) {
-        return sorted.sort(
-          (a, b) =>
-            a.price -
-            b.price
-        );
+    /*
+    * Cuando estamos viendo favoritos,
+    * los filtros se aplican localmente porque
+    * ya tenemos todas las publicaciones favoritas.
+    */
+    if (onlyFavorites) {
+      const term =
+        search.trim().toLowerCase();
+
+      if (term) {
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              publication.name
+                ?.toLowerCase()
+                .includes(term) ||
+              publication.albumName
+                ?.toLowerCase()
+                .includes(term) ||
+              publication.artist
+                ?.toLowerCase()
+                .includes(term) ||
+              publication.genre
+                ?.toLowerCase()
+                .includes(term)
+          );
       }
 
       if (
-        ordenar ===
-        "Precio: mayor a menor"
+        generoActivo !== "Todos"
       ) {
-        return sorted.sort(
-          (a, b) =>
-            b.price -
-            a.price
-        );
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              publication.genre ===
+              generoActivo
+          );
       }
 
-      if (
-        ordenar ===
-        "Más antiguos"
-      ) {
-        return sorted.sort(
-          (a, b) =>
-            new Date(
-              a.createdAt
-            ).getTime() -
-            new Date(
-              b.createdAt
-            ).getTime()
-        );
+      if (formatoChecked[0]) {
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              publication.format ===
+              formatoChecked[0]
+          );
       }
 
-      return sorted.sort(
+      if (condition) {
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              publication.condition ===
+              condition
+          );
+      }
+
+      if (precioMin) {
+        const min =
+          Number(precioMin);
+
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              Number(
+                publication.price
+              ) >= min
+          );
+      }
+
+      if (precioMax) {
+        const max =
+          Number(precioMax);
+
+        basePublications =
+          basePublications.filter(
+            (publication) =>
+              Number(
+                publication.price
+              ) <= max
+          );
+      }
+    }
+
+    if (
+      ordenar ===
+      "Precio: menor a mayor"
+    ) {
+      return basePublications.sort(
+        (a, b) =>
+          Number(a.price) -
+          Number(b.price)
+      );
+    }
+
+    if (
+      ordenar ===
+      "Precio: mayor a menor"
+    ) {
+      return basePublications.sort(
+        (a, b) =>
+          Number(b.price) -
+          Number(a.price)
+      );
+    }
+
+    if (
+      ordenar ===
+      "Más antiguos"
+    ) {
+      return basePublications.sort(
         (a, b) =>
           new Date(
-            b.createdAt
+            a.createdAt
           ).getTime() -
           new Date(
-            a.createdAt
+            b.createdAt
           ).getTime()
       );
-    }, [
-      publicaciones,
-      ordenar,
-    ]);
+    }
 
+    return basePublications.sort(
+      (a, b) =>
+        new Date(
+          b.createdAt
+        ).getTime() -
+        new Date(
+          a.createdAt
+        ).getTime()
+    );
+  }, [
+    publicaciones,
+    favoritePublications,
+    onlyFavorites,
+    search,
+    generoActivo,
+    formatoChecked,
+    condition,
+    precioMin,
+    precioMax,
+    ordenar,
+  ]);
+
+  const favoriteTotalPages =
+    Math.ceil(
+      sortedPublications.length /
+        PAGE_SIZE
+    );
+
+  const favoritePagePublications =
+    onlyFavorites
+      ? sortedPublications.slice(
+          favoritePage * PAGE_SIZE,
+          favoritePage * PAGE_SIZE +
+            PAGE_SIZE
+        )
+      : sortedPublications;
+
+  const visiblePublications =
+    favoritePagePublications;
   const hasActiveFilters =
     Boolean(
       search ||
+        onlyFavorites ||
         generoActivo !==
           "Todos" ||
         formatoChecked.length >
@@ -447,9 +707,19 @@ export default function ExplorePage() {
         precioMax
     );
 
+    const resultCount = onlyFavorites
+      ? sortedPublications.length
+      : totalElements;
+
   return (
     <div className="flex-1 max-w-[1200px] mx-auto w-full px-5 py-6 flex gap-6">
       <Sidebar
+        generos={generos}
+
+        generoActivo={generoActivo}
+
+        onGenreChange={setGeneroActivo} 
+
         formatoChecked={
           formatoChecked
         }
@@ -477,6 +747,15 @@ export default function ExplorePage() {
         onApplyFilters={() =>
           applyFilters()
         }
+        showFavorites={Boolean(user)}
+        onlyFavorites={onlyFavorites}
+        onOnlyFavoritesChange={(value) => {
+          setOnlyFavorites(value);
+
+          if (value) {
+            setFavoritePage(0);
+          }
+        }}
         error={
           filterError
         }
@@ -503,46 +782,6 @@ export default function ExplorePage() {
           >
             Busca y filtra publicaciones por artista, género, formato, estado y precio.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {generos.map(
-            (genre) => (
-              <button
-                key={
-                  genre
-                }
-                onClick={() =>
-                  handleGenreChange(
-                    genre
-                  )
-                }
-                className="text-[13px] px-4 py-1.5 rounded-full transition-colors"
-                style={
-                  generoActivo ===
-                  genre
-                    ? {
-                        background:
-                          "#f59e0b",
-                        color:
-                          "#0f1117",
-                        fontWeight:
-                          600,
-                      }
-                    : {
-                        background:
-                          "#1e2433",
-                        color:
-                          "#8892a4",
-                        border:
-                          "1px solid rgba(255,255,255,0.07)",
-                      }
-                }
-              >
-                {genre}
-              </button>
-            )
-          )}
         </div>
 
         <div className="flex items-center gap-2 mb-4">
@@ -733,7 +972,8 @@ export default function ExplorePage() {
                   "#6f7890",
               }}
             >
-              {sortedPublications.length} resultado
+              {resultCount} resultado
+              {resultCount !== 1 ? "s" : ""}
               {sortedPublications.length !==
               1
                 ? "s"
@@ -745,11 +985,71 @@ export default function ExplorePage() {
             value={
               ordenar
             }
-            onChange={(e) =>
-              setOrdenar(
-                e.target.value
-              )
-            }
+            onChange={async (e) => {
+              const newOrder = e.target.value;
+
+              setOrdenar(newOrder);
+
+              if (onlyFavorites) {
+                setFavoritePage(0);
+                return;
+              }
+
+              setPage(0);
+
+              try {
+                setLoading(true);
+
+                const sort =
+                  newOrder === "Precio: menor a mayor"
+                    ? ["price,asc", "id,asc"]
+                    : newOrder === "Precio: mayor a menor"
+                    ? ["price,desc", "id,desc"]
+                    : newOrder === "Más antiguos"
+                    ? ["createdAt,asc", "id,asc"]
+                    : ["createdAt,desc", "id,desc"];
+
+                const data =
+                  await filterPublicationsPage({
+                    q: search.trim() || undefined,
+                    genre:
+                      generoActivo === "Todos"
+                        ? undefined
+                        : generoActivo,
+                    format:
+                      formatoChecked[0] || undefined,
+                    condition:
+                      condition || undefined,
+                    minPrice:
+                      precioMin
+                        ? Number(precioMin)
+                        : undefined,
+                    maxPrice:
+                      precioMax
+                        ? Number(precioMax)
+                        : undefined,
+                    page: 0,
+                    size: PAGE_SIZE,
+                    sort,
+                  });
+
+                setPublicaciones(data.content);
+                setPage(data.number);
+                setTotalPages(data.totalPages);
+                setTotalElements(data.totalElements);
+              } catch (error) {
+                console.error(
+                  "Error al ordenar publicaciones:",
+                  error
+                );
+
+                setBackendError(
+                  "No se pudieron ordenar las publicaciones."
+                );
+              } finally {
+                setLoading(false);
+              }
+            }}
             className="text-[12px] px-3 py-1.5 rounded outline-none"
             style={{
               background:
@@ -847,22 +1147,49 @@ export default function ExplorePage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sortedPublications.map(
-              (
-                publication
-              ) => (
-                <PublicationCard
-                  key={
-                    publication.id
-                  }
-                  publication={
-                    publication
-                  }
-                />
-              )
-            )}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {visiblePublications.map(
+                (publication) => (
+                  <PublicationCard
+                    key={publication.id}
+                    publication={publication}
+                  />
+                )
+              )}
+            </div>
+
+            <Pagination
+              page={
+                onlyFavorites
+                  ? favoritePage
+                  : page
+              }
+              totalPages={
+                onlyFavorites
+                  ? favoriteTotalPages
+                  : totalPages
+              }
+              totalElements={
+                onlyFavorites
+                  ? sortedPublications.length
+                  : totalElements
+              }
+              pageSize={PAGE_SIZE}
+              onPageChange={
+                onlyFavorites
+                  ? (nextPage) => {
+                      setFavoritePage(nextPage);
+
+                      window.scrollTo({
+                        top: 0,
+                        behavior: "smooth",
+                      });
+                    }
+                  : handlePageChange
+              }
+            />
+          </>
         )}
       </main>
     </div>

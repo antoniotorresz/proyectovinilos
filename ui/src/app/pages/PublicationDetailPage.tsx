@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Disc3,
   Edit3,
-  Heart,
   MapPin,
   MessageCircle,
   Music2,
@@ -31,6 +30,7 @@ import {
 import type { Comment } from "../services/commentService";
 
 import { useAuth } from "../context/AuthContext";
+import FavoriteButton from "../components/favorites/FavoriteButton";
 
 import {
   AlertDialog,
@@ -52,7 +52,6 @@ export default function PublicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(0);
-  const [favorite, setFavorite] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
 
   const [comments, setComments] = useState<Comment[]>([]);
@@ -130,7 +129,7 @@ export default function PublicationDetailPage() {
           </p>
 
           <button
-            onClick={() => navigate("/explore")}
+            onClick={() => navigate(-1)}
             className="px-5 py-2.5 rounded text-[13px] font-semibold"
             style={{
               background: "#f59e0b",
@@ -273,7 +272,7 @@ export default function PublicationDetailPage() {
         <span>›</span>
 
         <button
-          onClick={() => navigate("/explore")}
+          onClick={() => navigate(-1)}
           className="hover:text-white"
         >
           Explorar
@@ -356,7 +355,7 @@ export default function PublicationDetailPage() {
           )}
 
           <button
-            onClick={() => navigate("/explore")}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-1 mt-5 text-[12px]"
             style={{ color: "#8892a4" }}
           >
@@ -816,32 +815,21 @@ export default function PublicationDetailPage() {
               </button>
             )}
 
-            <button
-              onClick={() =>
-                setFavorite((prev) => !prev)
-              }
-              className="w-full py-2.5 rounded mt-2 text-[12px] flex items-center justify-center gap-2"
-              style={{
-                background: "#1e2433",
-                color: favorite
-                  ? "#f59e0b"
-                  : "#c4c8d8",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <Heart
-                size={14}
-                fill={
-                  favorite
-                    ? "currentColor"
-                    : "none"
-                }
-              />
-
-              {favorite
-                ? "En favoritos"
-                : "Agregar a favoritos"}
-            </button>
+            {user && (
+              <div
+                className="w-full mt-2 py-2.5 rounded flex items-center justify-center"
+                style={{
+                  background: "#1e2433",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <FavoriteButton
+                  publicationId={publication.id}
+                  size={14}
+                  showText
+                />
+              </div>
+            )}
 
             <button
               onClick={handleShare}

@@ -4,11 +4,8 @@ import {
   Route,
   Routes,
 } from "react-router";
-
 import { AuthProvider } from "./context/AuthContext";
-
 import MainLayout from "./layouts/MainLayout";
-
 import HomePage from "./pages/HomePage";
 import ExplorePage from "./pages/ExplorePage";
 import PublishPage from "./pages/PublishPage";
@@ -20,125 +17,127 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminPage from "./pages/AdminPage";
 import PublicUserProfilePage from "./pages/PublicUserProfilePage";
-
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminRoute from "./routes/AdminRoute";
+import { FavoritesProvider } from "./context/FavoritesContext";
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <FavoritesProvider>
+        <BrowserRouter>
 
-        <Routes>
-
-          <Route
-            path="/login"
-            element={
-              <LoginPage />
-            }
-          />
-
-          <Route
-            path="/register"
-            element={
-              <RegisterPage />
-            }
-          />
-
-          <Route
-            element={
-              <MainLayout />
-            }
-          >
+          <Routes>
 
             <Route
-              path="/"
+              path="/login"
               element={
-                <HomePage />
+                <LoginPage />
               }
             />
 
             <Route
-              path="/explore"
+              path="/register"
               element={
-                <ExplorePage />
+                <RegisterPage />
               }
             />
 
             <Route
-              path="/users/:id"
               element={
-                <PublicUserProfilePage />
+                <MainLayout />
               }
-            />
+            >
 
-            <Route
-              path="/publications/:id"
-              element={
-                <PublicationDetailPage />
-              }
-            />
-
-            <Route
-              path="/publish"
-              element={
-                <ProtectedRoute>
-                  <PublishPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/my-publications"
-              element={
-                <ProtectedRoute>
-                  <MyPublicationsPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/publications/:id/edit"
-              element={
-                <ProtectedRoute>
-                  <EditPublicationPage />
-                </ProtectedRoute>
-              }
-            />
-
-            <Route
-              path="/admin"
-              element={
-                <AdminRoute>
-                  <AdminPage />
-                </AdminRoute>
-              }
-            />
-
-          </Route>
-
-          <Route
-            path="*"
-            element={
-              <Navigate
-                to="/"
-                replace
+              <Route
+                path="/"
+                element={
+                  <HomePage />
+                }
               />
-            }
-          />
 
-        </Routes>
+              <Route
+                path="/explore"
+                element={
+                  <ExplorePage />
+                }
+              />
 
-      </BrowserRouter>
+              <Route
+                path="/users/:id"
+                element={
+                  <PublicUserProfilePage />
+                }
+              />
+
+              <Route
+                path="/publications/:id"
+                element={
+                  <PublicationDetailPage />
+                }
+              />
+
+              <Route
+                path="/publish"
+                element={
+                  <ProtectedRoute>
+                    <PublishPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/my-publications"
+                element={
+                  <ProtectedRoute>
+                    <MyPublicationsPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/publications/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditPublicationPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminPage />
+                  </AdminRoute>
+                }
+              />
+
+            </Route>
+
+            <Route
+              path="*"
+              element={
+                <Navigate
+                  to="/"
+                  replace
+                />
+              }
+            />
+
+          </Routes>
+
+        </BrowserRouter>
+      </FavoritesProvider>
     </AuthProvider>
   );
 }
