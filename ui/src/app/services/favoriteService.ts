@@ -1,6 +1,8 @@
 import type { Publication } from "../types/Publication";
+import { buildApiUrl } from "./api";
 
-const API_URL = "http://localhost:8080/api/favorites";
+
+const API_URL = buildApiUrl("/favorites");
 
 export interface Favorite {
   id?: number;
