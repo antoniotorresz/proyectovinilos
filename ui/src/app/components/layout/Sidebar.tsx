@@ -1,15 +1,23 @@
 const FORMATOS = ["Vinilo", "CD", "Cassette"];
 
 interface SidebarProps {
+  generos: string[];
+  generoActivo: string;
   formatoChecked: string[];
   condition: string;
   precioMin: string;
   precioMax: string;
+  showFavorites?: boolean;
+  onlyFavorites?: boolean;
   onToggleFormato: (formato: string) => void;
+  onGenreChange: (genre: string) => void;
   onConditionChange: (condition: string) => void;
   onPrecioMinChange: (value: string) => void;
   onPrecioMaxChange: (value: string) => void;
   onApplyFilters: () => void;
+  onOnlyFavoritesChange?: (
+  value: boolean
+) => void;
   error?: string;
 }
 
@@ -22,15 +30,21 @@ const CONDITIONS = [
 ];
 
 export default function Sidebar({
+  generos,
+  generoActivo,
   formatoChecked,
   condition,
   precioMin,
   precioMax,
+  showFavorites = false,
+  onlyFavorites = false,
   onToggleFormato,
+  onGenreChange,
   onConditionChange,
   onPrecioMinChange,
   onPrecioMaxChange,
   onApplyFilters,
+  onOnlyFavoritesChange,
   error,
 }: SidebarProps) {
   return (
@@ -49,6 +63,77 @@ export default function Sidebar({
           Filtros
         </h3>
 
+        {/* Género */}
+        <div className="mb-5">
+          <p
+            className="text-[11px] font-semibold uppercase tracking-wider mb-2"
+            style={{ color: "#c4c8d8" }}
+          >
+            Género
+          </p>
+
+          <select
+            value={generoActivo}
+            onChange={(e) => onGenreChange(e.target.value)}
+            className="w-full text-[12px] px-2 py-2 outline-none"
+            style={{
+              background: "#1e2433",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#e8eaf0",
+              borderRadius: 4,
+            }}
+          >
+            {generos.map((genre) => (
+              <option key={genre} value={genre}>
+                {genre === "Todos"
+                  ? "Todos los géneros"
+                  : genre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Favoritos*/}  
+
+        {showFavorites && (
+          <div className="mb-5">
+            <p
+              className="text-[11px] font-semibold uppercase tracking-wider mb-2"
+              style={{
+                color: "#c4c8d8",
+              }}
+            >
+              Favoritos
+            </p>
+
+            <label
+              className="flex items-center gap-2 text-[13px] cursor-pointer"
+              style={{
+                color: onlyFavorites
+                  ? "#f59e0b"
+                  : "#8892a4",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={onlyFavorites}
+                onChange={(e) =>
+                  onOnlyFavoritesChange?.(
+                    e.target.checked
+                  )
+                }
+                style={{
+                  accentColor: "#f59e0b",
+                }}
+              />
+
+              Solo mis favoritos
+            </label>
+          </div>
+        )}
+
+
+        {/* Formato */}       
         <div className="mb-5">
           <p
             className="text-[11px] font-semibold uppercase tracking-wider mb-2"

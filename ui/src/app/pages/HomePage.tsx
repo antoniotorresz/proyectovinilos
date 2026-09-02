@@ -9,7 +9,7 @@ import {
 import { useNavigate } from "react-router";
 
 import PublicationCard from "../components/publications/PublicationCard";
-import { getPublications } from "../services/publicationService";
+import { getPublicationsPage } from "../services/publicationService";
 import type { Publication } from "../types/Publication";
 import { useAuth } from "../context/AuthContext";
 
@@ -32,22 +32,16 @@ export default function HomePage() {
         setLoading(true);
         setError("");
 
-        const data =
-          await getPublications();
+        const data = await getPublicationsPage({
+          page: 0,
+          size: 3,
+          sort: [
+            "createdAt,desc",
+            "id,desc",
+          ],
+        });
 
-        const recent = [...data]
-          .sort(
-            (a, b) =>
-              new Date(
-                b.createdAt
-              ).getTime() -
-              new Date(
-                a.createdAt
-              ).getTime()
-          )
-          .slice(0, 3);
-
-        setPublications(recent);
+        setPublications(data.content);
       } catch (err) {
         console.error(err);
 

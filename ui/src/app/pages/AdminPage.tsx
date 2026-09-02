@@ -14,8 +14,12 @@ import { useAuth } from "../context/AuthContext";
 import type { Publication } from "../types/Publication";
 import {
   deletePublication,
-  getPublications,
+  getPublicationsPage,
+  filterPublicationsPage,
+  getPublicationsByUserPage,
 } from "../services/publicationService";
+
+import Pagination from "../components/pagination/Pagination";
 
 import type { User } from "../services/userService";
 import {
@@ -41,11 +45,33 @@ export default function AdminPage() {
   const [publications, setPublications] =
     useState<Publication[]>([]);
 
+  const PUBLICATION_PAGE_SIZE = 10;
+
+  const [
+    publicationPage,
+    setPublicationPage,
+  ] = useState(0);
+
+  const [
+    publicationTotalPages,
+    setPublicationTotalPages,
+  ] = useState(0);
+
+  const [
+    publicationTotalElements,
+    setPublicationTotalElements,
+  ] = useState(0);
+
   const [users, setUsers] =
     useState<User[]>([]);
 
   const [loading, setLoading] =
     useState(true);
+
+  const [
+    publicationsLoading,
+    setPublicationsLoading,
+  ] = useState(false);
 
   const [error, setError] =
     useState("");
@@ -55,6 +81,15 @@ export default function AdminPage() {
 
   const [publicationSearch, setPublicationSearch] =
     useState("");
+
+  const [publicationUserFilter, setPublicationUserFilter] =
+    useState("ALL");
+
+  const [publicationFormatFilter, setPublicationFormatFilter] =
+    useState("ALL");
+
+  const [publicationSort, setPublicationSort] =
+    useState("RECENT");
 
   const [userSearch, setUserSearch] =
     useState("");
@@ -83,17 +118,35 @@ export default function AdminPage() {
           publicationData,
           userData,
         ] = await Promise.all([
-          getPublications(),
+          getPublicationsPage({
+            page: 0,
+            size: PUBLICATION_PAGE_SIZE,
+            sort: [
+              "createdAt,desc",
+              "id,desc",
+            ],
+          }),
           getAllUsers(),
         ]);
 
         setPublications(
-          publicationData
+          publicationData.content
         );
 
-        setUsers(
-          userData
+        setPublicationPage(
+          publicationData.number
         );
+
+        setPublicationTotalPages(
+          publicationData.totalPages
+        );
+
+        setPublicationTotalElements(
+          publicationData.totalElements
+        );
+
+        setUsers(userData);
+
       } catch (err) {
         console.error(err);
 
@@ -107,6 +160,151 @@ export default function AdminPage() {
 
     loadAdminData();
   }, []);
+
+  const getPublicationSort = (): string[] => {
+    switch (publicationSort) {
+      case "NAME_ASC":
+        return ["albumName,asc", "id,asc"];
+
+      case "NAME_DESC":
+        return ["albumName,desc", "id,desc"];
+
+      case "PRICE_ASC":
+        return ["price,asc", "id,asc"];
+
+      case "PRICE_DESC":
+        return ["price,desc", "id,desc"];
+
+      case "USER_ASC":
+        return ["user.name,asc", "id,asc"];
+
+      case "OLDEST":
+        return ["createdAt,asc", "id,asc"];
+
+      case "RECENT":
+      default:
+        return ["createdAt,desc", "id,desc"];
+    }
+  };
+
+  const loadAdminPublications = async (
+    targetPage = 0
+  ) => {
+    try {
+      setPublicationsLoading(true);
+      setError("");
+
+      const pagination = {
+        page: targetPage,
+        size: PUBLICATION_PAGE_SIZE,
+        sort: getPublicationSort(),
+      };
+
+      let data;
+
+      if (
+        publicationUserFilter !==
+        "ALL"
+      ) {
+        data =
+          await getPublicationsByUserPage(
+            Number(
+              publicationUserFilter
+            ),
+            pagination
+          );
+
+        let content =
+          data.content;
+
+        if (
+          publicationSearch.trim()
+        ) {
+          const term =
+            publicationSearch
+              .trim()
+              .toLowerCase();
+
+          content =
+            content.filter(
+              (publication) =>
+                publication.name
+                  ?.toLowerCase()
+                  .includes(term) ||
+                publication.albumName
+                  ?.toLowerCase()
+                  .includes(term) ||
+                publication.artist
+                  ?.toLowerCase()
+                  .includes(term) ||
+                publication.genre
+                  ?.toLowerCase()
+                  .includes(term)
+            );
+        }
+
+        if (
+          publicationFormatFilter !==
+          "ALL"
+        ) {
+          content =
+            content.filter(
+              (publication) =>
+                publication.format ===
+                publicationFormatFilter
+            );
+        }
+
+        setPublications(content);
+      } else {
+        data =
+          await filterPublicationsPage({
+            q:
+              publicationSearch.trim() ||
+              undefined,
+
+            format:
+              publicationFormatFilter ===
+              "ALL"
+                ? undefined
+                : publicationFormatFilter,
+
+            page:
+              targetPage,
+
+            size:
+              PUBLICATION_PAGE_SIZE,
+
+            sort:
+              getPublicationSort(),
+          });
+
+        setPublications(
+          data.content
+        );
+      }
+
+      setPublicationPage(
+        data.number
+      );
+
+      setPublicationTotalPages(
+        data.totalPages
+      );
+
+      setPublicationTotalElements(
+        data.totalElements
+      );
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "No se pudieron cargar las publicaciones."
+      );
+    } finally {
+      setPublicationsLoading(false);
+    }
+  };
 
   const filteredPublications =
     useMemo(() => {
@@ -331,6 +529,25 @@ export default function AdminPage() {
     }
   };
 
+  const handlePublicationPageChange =
+    async (
+      nextPage: number
+    ) => {
+      if (
+        nextPage < 0 ||
+        nextPage >=
+          publicationTotalPages ||
+        nextPage ===
+          publicationPage
+      ) {
+        return;
+      }
+
+      await loadAdminPublications(
+        nextPage
+      );
+    };
+
   const getRoleLabel = (
     role: User["role"]
   ) => {
@@ -454,7 +671,7 @@ export default function AdminPage() {
         <SummaryCard
           label="Publicaciones"
           value={
-            publications.length
+            publicationTotalElements
           }
           icon={
             <Disc3
@@ -510,6 +727,154 @@ export default function AdminPage() {
               }
               placeholder="Buscar publicación..."
             />
+            <select
+              value={
+                publicationUserFilter
+              }
+              onChange={(e) => {
+                setPublicationUserFilter(
+                  e.target.value
+                );
+
+                setPublicationPage(0);
+              }}
+              className="text-[12px] px-3 py-2 rounded outline-none"
+              style={{
+                background: "#1e2433",
+                color: "#c4c8d8",
+                border:
+                  "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <option value="ALL">
+                Todos los usuarios
+              </option>
+
+              {users
+                .slice()
+                .sort((a, b) =>
+                  a.name.localeCompare(
+                    b.name,
+                    "es",
+                    {
+                      sensitivity:
+                        "base",
+                    }
+                  )
+                )
+                .map((item) => (
+                  <option
+                    key={item.id}
+                    value={String(
+                      item.id
+                    )}
+                  >
+                    {item.name}
+                  </option>
+                ))}
+            </select>
+
+            <select
+              value={
+                publicationFormatFilter
+              }
+              onChange={(e) => {
+                setPublicationFormatFilter(
+                  e.target.value
+                );
+
+                setPublicationPage(0);
+              }}
+              className="text-[12px] px-3 py-2 rounded outline-none"
+              style={{
+                background: "#1e2433",
+                color: "#c4c8d8",
+                border:
+                  "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <option value="ALL">
+                Todos los formatos
+              </option>
+
+              <option value="Vinilo">
+                Vinilo
+              </option>
+
+              <option value="CD">
+                CD
+              </option>
+
+              <option value="Cassette">
+                Cassette
+              </option>
+            </select>
+
+            <select
+              value={
+                publicationSort
+              }
+              onChange={(e) => {
+                setPublicationSort(
+                  e.target.value
+                );
+
+                setPublicationPage(0);
+              }}
+              className="text-[12px] px-3 py-2 rounded outline-none"
+              style={{
+                background: "#1e2433",
+                color: "#c4c8d8",
+                border:
+                  "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <option value="RECENT">
+                Más recientes
+              </option>
+
+              <option value="OLDEST">
+                Más antiguas
+              </option>
+
+              <option value="NAME_ASC">
+                Título A-Z
+              </option>
+
+              <option value="NAME_DESC">
+                Título Z-A
+              </option>
+
+              <option value="PRICE_ASC">
+                Precio: menor a mayor
+              </option>
+
+              <option value="PRICE_DESC">
+                Precio: mayor a menor
+              </option>
+
+              <option value="USER_ASC">
+                Usuario A-Z
+              </option>
+            </select>
+
+            <button
+              onClick={() =>
+                loadAdminPublications(0)
+              }
+              disabled={
+                publicationsLoading
+              }
+              className="px-4 py-2 rounded text-[12px] font-semibold disabled:opacity-50"
+              style={{
+                background: "#1e2433",
+                color: "#f59e0b",
+                border:
+                  "1px solid rgba(245,158,11,0.2)",
+              }}
+            >
+              Aplicar filtros
+            </button>
 
             <button
               onClick={() =>
@@ -716,6 +1081,21 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+        <Pagination
+          page={publicationPage}
+          totalPages={
+            publicationTotalPages
+          }
+          totalElements={
+            publicationTotalElements
+          }
+          pageSize={
+            PUBLICATION_PAGE_SIZE
+          }
+          onPageChange={
+            handlePublicationPageChange
+          }
+        />
       </section>
 
       <section className="mt-10">

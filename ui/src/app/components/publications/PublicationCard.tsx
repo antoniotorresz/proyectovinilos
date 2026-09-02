@@ -1,6 +1,7 @@
 import type { Publication } from "../../types/Publication";
 import { Disc3, Eye, Pencil, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
+import FavoriteButton from "../favorites/FavoriteButton";
 
 interface PublicationCardProps {
   publication: Publication;
@@ -15,6 +16,7 @@ export default function PublicationCard({
   onEdit,
   onDelete,
 }: PublicationCardProps) {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const imageUrl =
@@ -38,7 +40,15 @@ export default function PublicationCard({
   const price = Number(publication.price);
 
   const goToDetails = () => {
-    navigate(`/publications/${publication.id}`);
+    navigate(
+      `/publications/${publication.id}`,
+      {
+        state: {
+          returnTo:
+            `${location.pathname}${location.search}`,
+        },
+      }
+    );
   };
 
   return (
@@ -51,78 +61,98 @@ export default function PublicationCard({
     >
       {/* IMAGEN */}
 
-      <button
-        type="button"
-        onClick={goToDetails}
-        className="relative w-full block text-left"
+      <div
+        className="relative w-full"
         style={{
           paddingTop: "70%",
           background: "#111722",
         }}
-        aria-label={`Ver detalles de ${title}`}
       >
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={title}
-            className="absolute inset-0 w-full h-full object-cover"
-            onError={(event) => {
-              event.currentTarget.style.display = "none";
-            }}
-          />
-        ) : (
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
-            style={{
-              color: "#6f7890",
-            }}
-          >
-            <Disc3 size={32} />
+        {/* Área clickeable de la imagen */}
+        <button
+          type="button"
+          onClick={goToDetails}
+          className="absolute inset-0 w-full h-full block text-left"
+          aria-label={`Ver detalles de ${title}`}
+        >
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={title}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <div
+              className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+              style={{
+                color: "#6f7890",
+              }}
+            >
+              <Disc3 size={32} />
 
-            <span className="text-[11px]">
-              Sin imagen
+              <span className="text-[11px]">
+                Sin imagen
+              </span>
+            </div>
+          )}
+
+          {conditionLabel && (
+            <span
+              className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded"
+              style={{
+                background:
+                  publication.condition === "MINT"
+                    ? "#f59e0b"
+                    : "rgba(15,17,23,0.82)",
+
+                color:
+                  publication.condition === "MINT"
+                    ? "#0f1117"
+                    : "#c4c8d8",
+
+                border:
+                  publication.condition === "MINT"
+                    ? undefined
+                    : "1px solid rgba(255,255,255,0.18)",
+              }}
+            >
+              {conditionLabel}
             </span>
-          </div>
-        )}
+          )}
 
-        {conditionLabel && (
-          <span
-            className="absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded"
-            style={{
-              background:
-                publication.condition === "MINT"
-                  ? "#f59e0b"
-                  : "rgba(15,17,23,0.82)",
+          {publication.format && (
+            <span
+              className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded"
+              style={{
+                background: "rgba(15,17,23,0.82)",
+                color: "#c4c8d8",
+                border:
+                  "1px solid rgba(255,255,255,0.18)",
+              }}
+            >
+              {publication.format}
+            </span>
+          )}
+        </button>
 
-              color:
-                publication.condition === "MINT"
-                  ? "#0f1117"
-                  : "#c4c8d8",
-
-              border:
-                publication.condition === "MINT"
-                  ? undefined
-                  : "1px solid rgba(255,255,255,0.18)",
-            }}
-          >
-            {conditionLabel}
-          </span>
-        )}
-
-        {publication.format && (
-          <span
-            className="absolute bottom-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded"
-            style={{
-              background: "rgba(15,17,23,0.82)",
-              color: "#c4c8d8",
-              border:
-                "1px solid rgba(255,255,255,0.18)",
-            }}
-          >
-            {publication.format}
-          </span>
-        )}
-      </button>
+        {/* FAVORITO */}
+        <div
+          className="absolute top-2 left-2 z-10 w-9 h-9 rounded-full flex items-center justify-center"
+          style={{
+            background: "rgba(15,17,23,0.88)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <FavoriteButton
+            publicationId={publication.id}
+            size={17}
+          />
+        </div>
+      </div>
 
       {/* INFORMACIÓN */}
 
